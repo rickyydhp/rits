@@ -1,1 +1,915 @@
-# rits
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PT RITS NUSA KENARI - Integrated Facility Service & Parking Management</title>
+    <meta name="description" content="PT RITS NUSA KENARI menyediakan solusi manajemen parkir terintegrasi, sistem smart gate manless, dan layanan fasilitas profesional.">
+    <link class="rounded" rel="icon" type="image/png" href="logo.png">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ritsnusakenari.com/">
+    <meta property="og:title" content="PT RITS NUSA KENARI - Integrated Facility Service">
+    <meta property="og:description" content="Solusi Smart Parking & Manajemen Fasilitas Terpercaya.">
+    <meta property="og:image" content="foto/logo_rits2.JPG">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --maroon: #800000;
+            --maroon-dark: #5a0000;
+            --carbon: #1a1a1a;
+            --gold: #D4AF37;
+            --deep-brown: #3E2723;
+            --cream-light: #FCFAEE;
+            --cream-dark: #F5E6D3;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--cream-light);
+            color: var(--carbon);
+            overflow-x: hidden;
+        }
+
+        .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--cream-dark);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--maroon);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--maroon-dark);
+        }
+
+        /* SPA Mechanism */
+        .page-section {
+            display: none;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .page-section.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Running Text Smooth Marquee */
+        .marquee {
+            background: var(--carbon);
+            color: white;
+            padding: 12px 0;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .marquee-inner {
+            display: inline-block;
+            animation: slide 25s linear infinite;
+        }
+
+        @keyframes slide {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
+        /* Glassmorphism Header */
+        .glass {
+            background: rgba(252, 250, 238, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(128, 0, 0, 0.1);
+        }
+
+        /* Premium Zoom & Slide Card Container */
+        .zoom-container {
+            overflow: hidden;
+            position: relative;
+            border-radius: 1.25rem;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .zoom-container img {
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Hover Foto: Efek Zoom + Geser Halus ke Kanan Atas */
+        .zoom-container:hover img {
+            transform: scale(1.12) translate(8px, -4px);
+        }
+
+        /* Luxury Card Hover */
+        .hover-card {
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .hover-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 30px rgba(128, 0, 0, 0.05);
+        }
+
+        /* Gradasi Teks Foto & Efek Geser Tulisan Saat Hover */
+        .photo-text {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(26, 26, 26, 0.95) 0%, rgba(26, 26, 26, 0.4) 60%, transparent 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 1.5rem;
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* Tulisan bergeser sedikit ke atas saat kartu di-hover */
+        .portfolio-item:hover .photo-text h4 {
+            transform: translateY(-4px);
+        }
+        .portfolio-item:hover .photo-text p {
+            transform: translateY(-2px);
+            color: var(--gold);
+        }
+
+        .photo-text h4, .photo-text p {
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), color 0.3s ease;
+        }
+
+        /* Infinite Partner Logo Track */
+        @keyframes infiniteScroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+        .partner-track {
+            display: flex;
+            width: max-content;
+            animation: infiniteScroll 30s linear infinite;
+        }
+        .partner-track:hover { animation-play-state: paused; }
+
+        /* Navigation Link Indicator */
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--maroon);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        .nav-link:hover::after, .nav-link.active::after {
+            width: 100%;
+        }
+        .nav-link.active { color: var(--maroon); }
+
+        /* FAQ Accordion Transition */
+        .faq-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Portfolio Grid Limit */
+        .grid-limited > .portfolio-item:nth-child(n+9) {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="antialiased selection:bg-[#800000] selection:text-white">
+
+    <div class="marquee border-b border-[#D4AF37]/40 relative z-50">
+        <div class="marquee-inner">
+            <span class="mx-8 font-bold text-[9px] md:text-[11px] uppercase tracking-[0.25em]">
+                <i class="fas fa-shield-alt text-[#D4AF37] mr-2"></i> PT RITS NUSA KENARI — INTEGRATED PARKING SYSTEM — SMART GATE MANLESS 2026 — REAL-TIME DASHBOARD MONITORING — INTEGRITY FIRST —
+            </span>
+            <span class="mx-8 font-bold text-[9px] md:text-[11px] uppercase tracking-[0.25em]">
+                <i class="fas fa-shield-alt text-[#D4AF37] mr-2"></i> PT RITS NUSA KENARI — INTEGRATED PARKING SYSTEM — SMART GATE MANLESS 2026 — REAL-TIME DASHBOARD MONITORING — INTEGRITY FIRST —
+            </span>
+        </div>
+    </div>
+
+    <nav class="glass sticky top-0 z-50 py-4 px-6 transition-all duration-300">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4 cursor-pointer group" onclick="showPage('home')">
+                <div class="w-12 h-12 bg-[#800000] rounded-xl flex items-center justify-center shadow-md group-hover:rotate-3 transition-transform duration-300">
+                    <img src="foto/logo_rits2.JPG" alt="RITS Logo" class="w-10 h-10 object-contain rounded-lg">
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg md:text-xl leading-none tracking-tight text-[#3E2723]">
+                        RITS NUSA <span class="text-[#800000]">KENARI</span>
+                    </h1>
+                    <p class="text-[9px] font-bold text-gray-400 tracking-[0.2em] uppercase italic mt-0.5">
+                        Facility & Parking Management
+                    </p>
+                </div>
+            </div>
+
+            <div class="hidden lg:flex items-center gap-8 font-semibold text-xs uppercase tracking-widest text-[#3E2723]">
+                <button onclick="showPage('home')" class="nav-link hover:text-[#800000] active">Home</button>
+                <button onclick="showPage('about')" class="nav-link hover:text-[#800000]">Directors</button>
+                <button onclick="showPage('services')" class="nav-link hover:text-[#800000]">Services</button>
+                <button onclick="showPage('portfolio')" class="nav-link hover:text-[#800000]">Portfolio</button>
+                <button onclick="showPage('career')" class="nav-link hover:text-[#800000]">Career</button>
+                <button onclick="showPage('contact')" class="bg-[#800000] text-white px-6 py-3 rounded-full hover:bg-black transition-all shadow-md transform active:scale-95 font-bold">
+                    Get in Touch
+                </button>
+            </div>
+
+            <button class="lg:hidden text-2xl text-[#800000] focus:outline-none" id="menuBtn" aria-label="Open Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <div id="mobileMenu" class="fixed inset-0 z-[60] bg-[#FCFAEE] flex flex-col p-8 lg:hidden translate-x-full transition-transform duration-300 ease-in-out">
+        <div class="flex justify-end mb-8">
+            <button id="closeBtn" class="text-4xl text-[#800000] focus:outline-none">×</button>
+        </div>
+        <div class="flex flex-col gap-6 text-center text-lg font-bold uppercase tracking-widest my-auto">
+            <button onclick="showPage('home'); toggleMenu()" class="hover:text-[#800000] py-2">Home</button>
+            <button onclick="showPage('about'); toggleMenu()" class="hover:text-[#800000] py-2">Directors</button>
+            <button onclick="showPage('services'); toggleMenu()" class="hover:text-[#800000] py-2">Services</button>
+            <button onclick="showPage('portfolio'); toggleMenu()" class="hover:text-[#800000] py-2">Portfolio</button>
+            <button onclick="showPage('career'); toggleMenu()" class="hover:text-[#800000] py-2">Career</button>
+            <button onclick="showPage('contact'); toggleMenu()" class="bg-[#800000] text-white py-4 rounded-full shadow-lg mt-4 font-bold">Contact Us</button>
+        </div>
+    </div>
+
+    <main>
+        <section id="home" class="page-section active">
+            <div class="relative min-h-[85vh] flex items-center bg-[#1A1A1A] overflow-hidden py-20 lg:py-0">
+                <div class="absolute inset-0 opacity-35 bg-[url('https://images.unsplash.com/photo-1506521781263-d8422e82f27a?q=80&w=2000')] bg-cover bg-center"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
+                
+                <div class="max-w-7xl mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center w-full">
+                    <div class="text-center lg:text-left" data-aos="fade-right" data-aos-duration="1200" data-aos-easing="ease-out-quint">
+                        <span class="inline-block text-[#D4AF37] font-extrabold uppercase tracking-[0.4em] mb-4 text-xs bg-[#D4AF37]/10 px-4 py-1.5 rounded-full">
+                            Premium Mobility Solution
+                        </span>
+                        <h1 class="text-4xl md:text-7xl font-serif text-white leading-[1.15] mb-6">
+                            Elevating <br><span class="italic text-[#D4AF37]">Parking</span> Experience.
+                        </h1>
+                        <p class="text-sm md:text-base text-gray-400 mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
+                            Sistem manajemen fasilitas dan parkir terintegrasi yang menggabungkan transparansi data *real-time*, keamanan berlapis, dan teknologi automasi *Manless Smart Gate* terkini.
+                        </p>
+
+                        <div class="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
+                            <a href="https://wa.me/6289510360700?text=Halo%20PT%20RITS%20NUSA%20KENARI,%20saya%20tertarik%20untuk%20mulai%20kerjasama." target="_blank"
+                               class="bg-[#800000] text-white px-8 py-4 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg hover:bg-[#5a0000] transition-all text-center flex items-center justify-center gap-2">
+                                <i class="fab fa-whatsapp text-sm"></i> Mulai Kerja Sama
+                            </a>
+                            <a href="compro.pdf" download="compro.pdf" target="_blank"
+                               class="border border-[#D4AF37] text-[#D4AF37] px-8 py-4 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[#D4AF37] hover:text-black transition-all text-center flex items-center justify-center gap-2">
+                                <i class="fas fa-file-download"></i> Company Profile
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="hidden lg:block" data-aos="fade-left" data-aos-duration="1400" data-aos-easing="ease-out-quint">
+                        <div class="zoom-container border border-white/10 p-2 bg-white/5 backdrop-blur-sm max-w-md ml-auto">
+                            <img src="https://images.unsplash.com/photo-1590674899484-13da0d1b58f5?q=80&w=1000" loading="eager" alt="Smart Gate Machine" class="rounded-xl shadow-2xl">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="max-w-7xl mx-auto px-6 -mt-12 relative z-20 pb-20">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white p-8 rounded-2xl shadow-md border-t-4 border-[#800000] hover-card" data-aos="fade-up" data-aos-delay="100">
+                        <div class="w-12 h-12 bg-[#800000]/5 text-[#800000] rounded-xl flex items-center justify-center text-xl mb-6"><i class="fas fa-barcode"></i></div>
+                        <h4 class="font-bold text-base mb-2 text-[#3E2723]">Smart Dispenser</h4>
+                        <p class="text-xs text-gray-500 leading-relaxed">Thermal ticket system mandiri berkecepatan tinggi dengan panduan suara & interaktivitas QR.</p>
+                    </div>
+                    <div class="bg-white p-8 rounded-2xl shadow-md border-t-4 border-[#1A1A1A] hover-card" data-aos="fade-up" data-aos-delay="200">
+                        <div class="w-12 h-12 bg-[#1A1A1A]/5 text-[#1A1A1A] rounded-xl flex items-center justify-center text-xl mb-6"><i class="fas fa-video"></i></div>
+                        <h4 class="font-bold text-base mb-2 text-[#3E2723]">AI Surveillance</h4>
+                        <p class="text-xs text-gray-500 leading-relaxed">Sistem IP Camera pintar berbasis ANPR untuk pemindaian pelat nomor otomatis 24/7 secara akurat.</p>
+                    </div>
+                    <div class="bg-white p-8 rounded-2xl shadow-md border-t-4 border-[#800000] hover-card" data-aos="fade-up" data-aos-delay="300">
+                        <div class="w-12 h-12 bg-[#800000]/5 text-[#800000] rounded-xl flex items-center justify-center text-xl mb-6"><i class="fas fa-microchip"></i></div>
+                        <h4 class="font-bold text-base mb-2 text-[#3E2723]">High-Speed Gate</h4>
+                        <p class="text-xs text-gray-500 leading-relaxed">Barrier gate industrial dengan akselerasi engine 1.8 detik dilengkapi sensor anti-collision mumpuni.</p>
+                    </div>
+                    <div class="bg-white p-8 rounded-2xl shadow-md border-t-4 border-[#1A1A1A] hover-card" data-aos="fade-up" data-aos-delay="400">
+                        <div class="w-12 h-12 bg-[#1A1A1A]/5 text-[#1A1A1A] rounded-xl flex items-center justify-center text-xl mb-6"><i class="fas fa-cloud"></i></div>
+                        <h4 class="font-bold text-base mb-2 text-[#3E2723]">Cloud Analytics</h4>
+                        <p class="text-xs text-gray-500 leading-relaxed">Dashboard pelaporan finansial dan okupansi enkripsi tinggi, dapat dipantau langsung via ponsel.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white py-12 border-y border-gray-100 overflow-hidden">
+                <div class="max-w-7xl mx-auto px-6">
+                    <p class="text-center text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400 mb-8">Trusted by Industry Leaders</p>
+                    <div class="relative w-full">
+                        <div class="partner-track items-center gap-16 md:gap-24">
+                            <img src="foto/dishub.jpeg" alt="Dishub" class="h-10 w-auto object-contain grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all">
+                            <img src="foto/rs_mery_logo.webp" alt="RS Mary" class="h-10 w-auto object-contain grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all">
+                            <img src="foto/jakpro.jpg" alt="Jakpro" class="h-10 w-auto object-contain grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all">
+                            <img src="foto/rs_fortun.jpeg" alt="RS Fortun" class="h-10 w-auto object-contain grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all">
+                            <img src="https://upload.wikimedia.org/wikipedia/id/thumb/2/23/Logo_Ciputra.svg/1200px-Logo_Ciputra.svg.png" alt="Ciputra" class="h-8 w-auto object-contain grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all">
+                            
+                            <img src="foto/dishub.jpeg" alt="Dishub" class="h-10 w-auto object-contain grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all">
+                            <img src="foto/rs_mery_logo.webp" alt="RS Mary" class="h-10 w-auto object-contain grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all">
+                            <img src="foto/jakpro.jpg" alt="Jakpro" class="h-10 w-auto object-contain grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all">
+                            <img src="foto/rs_fortun.jpeg" alt="RS Fortun" class="h-10 w-auto object-contain grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all">
+                            <img src="https://upload.wikimedia.org/wikipedia/id/thumb/2/23/Logo_Ciputra.svg/1200px-Logo_Ciputra.svg.png" alt="Ciputra" class="h-8 w-auto object-contain grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="page-section py-24 px-6 bg-white">
+            <div class="max-w-7xl mx-auto">
+                <div class="grid lg:grid-cols-2 gap-16 items-center mb-28">
+                    <div data-aos="fade-right" data-aos-duration="1000">
+                        <span class="text-[#800000] font-bold uppercase tracking-wider text-xs block mb-2">Corporate Identity</span>
+                        <h2 class="text-3xl md:text-5xl font-serif mb-6 text-[#3E2723]">
+                            Menjadi Pemimpin Komitmen <span class="bg-[#800000] text-white px-3 py-1 not-italic inline-block">Integrated</span> Facility.
+                        </h2>
+                        <div class="space-y-4 text-gray-600 text-sm leading-relaxed">
+                            <p>PT RITS NUSA KENARI dibangun atas dasar profesionalisme dan integritas tinggi untuk menciptakan standar pengelolaan ruang parkir dan properti bertaraf nasional. Kami percaya bahwa setiap aspek komersial berhak mendapatkan tata kelola optimal.</p>
+                            <div class="bg-[#FCFAEE] p-6 border-l-4 border-[#800000] rounded-r-xl italic font-medium text-[#3E2723] shadow-sm">
+                                "Mewujudkan korporasi pelayanan prima yang aman, akuntabel, dan tepercaya dengan fokus mutlak pada kepuasan pelanggan serta efisiensi berbasis teknologi maju."
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4" data-aos="fade-left" data-aos-duration="1200">
+                        <div class="space-y-4 pt-8">
+                            <div class="zoom-container h-44 shadow-md"><img src="https://images.unsplash.com/photo-1573164713988-8665fc963095?q=80&w=400" alt="Office Activity"></div>
+                            <div class="bg-[#3E2723] p-6 rounded-2xl text-white text-center">
+                                <h5 class="text-3xl font-extrabold text-[#D4AF37] stat-number" data-target="10">0</h5>
+                                <p class="text-[9px] uppercase font-bold tracking-widest text-gray-300 mt-1">Tahun Pengalaman Kolektif</p>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="bg-[#800000] p-6 rounded-2xl text-white text-center">
+                                <h5 class="text-3xl font-extrabold text-[#D4AF37] stat-number" data-target="50">0</h5>
+                                <p class="text-[9px] uppercase font-bold tracking-widest text-gray-200 mt-1">Profesional & Terlatih</p>
+                            </div>
+                            <div class="zoom-container h-44 shadow-md"><img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=400" alt="Building"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mb-16" data-aos="fade-up">
+                    <h2 class="text-3xl md:text-4xl font-serif italic mb-3 text-[#3E2723]">Board of Directors</h2>
+                    <div class="w-16 h-1 bg-[#800000] mx-auto rounded-full"></div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="group text-center" data-aos="fade-right" data-aos-delay="100" data-aos-duration="1000">
+                        <div class="zoom-container h-80 mb-4 shadow-lg border-b-4 border-transparent group-hover:border-[#800000]">
+                            <img src="foto/ruben.jpeg" class="grayscale group-hover:grayscale-0 object-top" alt="Ruben Etidena">
+                            <div class="photo-text">
+                                <h4 class="text-base font-bold text-white tracking-wide">Ruben Etidena</h4>
+                                <p class="text-[10px] uppercase font-bold text-[#D4AF37] tracking-wider mt-0.5">Komisaris</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="group text-center" data-aos="fade-right" data-aos-delay="200" data-aos-duration="1000">
+                        <div class="zoom-container h-80 mb-4 shadow-lg border-b-4 border-transparent group-hover:border-[#800000]">
+                            <img src="foto/john.jpeg" class="grayscale group-hover:grayscale-0 object-top" alt="Jhon Sius Langkola">
+                            <div class="photo-text">
+                                <h4 class="text-base font-bold text-white tracking-wide">Jhon Sius Langkola</h4>
+                                <p class="text-[10px] uppercase font-bold text-[#D4AF37] tracking-wider mt-0.5">Direktur Utama</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="group text-center" data-aos="fade-left" data-aos-delay="300" data-aos-duration="1000">
+                        <div class="zoom-container h-80 mb-4 shadow-lg border-b-4 border-transparent group-hover:border-[#800000]">
+                            <img src="foto/tius.jpeg" class="grayscale group-hover:grayscale-0 object-top" alt="Ignatius Etidena">
+                            <div class="photo-text">
+                                <h4 class="text-base font-bold text-white tracking-wide">Ignatius Etidena</h4>
+                                <p class="text-[10px] uppercase font-bold text-[#D4AF37] tracking-wider mt-0.5">Direktur Keuangan</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="group text-center" data-aos="fade-left" data-aos-delay="400" data-aos-duration="1000">
+                        <div class="zoom-container h-80 mb-4 shadow-lg border-b-4 border-transparent group-hover:border-[#800000]">
+                            <img src="foto/toni.jpeg" class="grayscale group-hover:grayscale-0 object-top" alt="Tony BBH">
+                            <div class="photo-text">
+                                <h4 class="text-base font-bold text-white tracking-wide">Tony BBH.</h4>
+                                <p class="text-[10px] uppercase font-bold text-[#D4AF37] tracking-wider mt-0.5">Direktur Umum</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="services" class="page-section py-24 px-6 bg-[#F5E6D3]">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16" data-aos="fade-up">
+                    <h2 class="text-3xl md:text-4xl font-serif text-[#3E2723] mb-3">Model Kerja Sama Strategis</h2>
+                    <p class="text-[#800000] font-bold tracking-widest uppercase text-xs">Opsi Skema Fleksibel Sesuai Kebutuhan Lahan Bisnis Anda</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div onclick="openModal('management')" class="bg-white p-8 rounded-2xl shadow-sm hover-card border-l-4 border-[#800000] cursor-pointer" data-aos="zoom-in-up" data-aos-delay="50">
+                        <div class="text-[#800000] text-2xl mb-4"><i class="fas fa-users-cog"></i></div>
+                        <h3 class="text-lg font-bold mb-2 text-[#3E2723]">Management Fee</h3>
+                        <p class="text-xs text-gray-500 mb-6 leading-relaxed">Pengelolaan operasional menyeluruh dan sistem integrasi penuh dengan imbal jasa tetap secara transparan.</p>
+                        <span class="text-[#800000] font-bold text-[10px] uppercase tracking-wider flex items-center gap-1">Read Details <i class="fas fa-chevron-right text-[8px]"></i></span>
+                    </div>
+                    <div onclick="openModal('profit')" class="bg-[#1A1A1A] p-8 rounded-2xl shadow-sm hover-card border-l-4 border-[#D4AF37] cursor-pointer text-white" data-aos="zoom-in-up" data-aos-delay="100">
+                        <div class="text-[#D4AF37] text-2xl mb-4"><i class="fas fa-chart-pie"></i></div>
+                        <h3 class="text-lg font-bold mb-2 text-[#D4AF37]">Profit Sharing</h3>
+                        <p class="text-xs text-gray-400 mb-6 leading-relaxed">Skema bagi hasil rasional yang dihitung berdasar Laba Bersih Operasional setelah pemotongan biaya di lapangan.</p>
+                        <span class="text-[#D4AF37] font-bold text-[10px] uppercase tracking-wider flex items-center gap-1">Read Details <i class="fas fa-chevron-right text-[8px]"></i></span>
+                    </div>
+                    <div onclick="openModal('revenue')" class="bg-white p-8 rounded-2xl shadow-sm hover-card border-l-4 border-[#800000] cursor-pointer" data-aos="zoom-in-up" data-aos-delay="150">
+                        <div class="text-[#800000] text-2xl mb-4"><i class="fas fa-money-bill-wave"></i></div>
+                        <h3 class="text-lg font-bold mb-2 text-[#3E2723]">Revenue Sharing</h3>
+                        <p class="text-xs text-gray-500 mb-6 leading-relaxed">Bagi hasil proporsional dari Pendapatan Bruto bruto setelah dikurangi kewajiban pajak daerah terkait.</p>
+                        <span class="text-[#800000] font-bold text-[10px] uppercase tracking-wider flex items-center gap-1">Read Details <i class="fas fa-chevron-right text-[8px]"></i></span>
+                    </div>
+                    <div onclick="openModal('guaranteed')" class="bg-[#800000] p-8 rounded-2xl shadow-sm hover-card border-l-4 border-[#1A1A1A] cursor-pointer text-white" data-aos="zoom-in-up" data-aos-delay="200">
+                        <div class="text-white text-2xl mb-4"><i class="fas fa-handshake"></i></div>
+                        <h3 class="text-lg font-bold mb-2 text-white">Guaranteed Income</h3>
+                        <p class="text-xs text-red-100 mb-6 leading-relaxed">Sewa lahan bergaransi tetap berkala tanpa risiko fluktuasi atau pengaruh iklim volume kendaraan.</p>
+                        <span class="text-white font-bold text-[10px] uppercase tracking-wider flex items-center gap-1">Read Details <i class="fas fa-chevron-right text-[8px]"></i></span>
+                    </div>
+                    <div onclick="openModal('technical')" class="bg-white p-8 rounded-2xl shadow-sm hover-card border-l-4 border-[#800000] cursor-pointer" data-aos="zoom-in-up" data-aos-delay="250">
+                        <div class="text-[#800000] text-2xl mb-4"><i class="fas fa-tools"></i></div>
+                        <h3 class="text-lg font-bold mb-2 text-[#3E2723]">Technical Asst.</h3>
+                        <p class="text-xs text-gray-500 mb-6 leading-relaxed">Pendampingan ahli IT dan penyediaan arsitektur sistem. SDM dikelola mandiri oleh pemilik properti.</p>
+                        <span class="text-[#800000] font-bold text-[10px] uppercase tracking-wider flex items-center gap-1">Read Details <i class="fas fa-chevron-right text-[8px]"></i></span>
+                    </div>
+                    <div onclick="openModal('combination')" class="bg-[#3E2723] p-8 rounded-2xl shadow-sm hover-card border-l-4 border-[#800000] cursor-pointer text-white" data-aos="zoom-in-up" data-aos-delay="300">
+                        <div class="text-[#D4AF37] text-2xl mb-4"><i class="fas fa-puzzle-piece"></i></div>
+                        <h3 class="text-lg font-bold mb-2 text-[#D4AF37]">Combination Fee</h3>
+                        <p class="text-xs text-gray-300 mb-6 leading-relaxed">Penggabungan fleksibel multi-skema demi tercapainya titik keekonomian dan profitabilitas maksimal.</p>
+                        <span class="text-[#D4AF37] font-bold text-[10px] uppercase tracking-wider flex items-center gap-1">Read Details <i class="fas fa-chevron-right text-[8px]"></i></span>
+                    </div>
+                </div>
+
+                <div class="mt-28" data-aos="fade-up">
+                    <div class="text-center mb-12">
+                        <h2 class="text-2xl md:text-3xl font-serif text-[#3E2723]">4 Alur Implementasi Kerja</h2>
+                        <div class="w-12 h-0.5 bg-[#800000] mx-auto mt-2"></div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 relative">
+                        <div class="text-center relative" data-aos="fade-right" data-aos-delay="100">
+                            <div class="text-4xl font-serif font-bold text-[#800000]/10 mb-2">01</div>
+                            <h5 class="font-bold text-sm text-[#3E2723] uppercase tracking-wider mb-1">Site Survey</h5>
+                            <p class="text-xs text-gray-500 max-w-xs mx-auto">Analisis struktur lahan fisik dan pemetaan kapasitas arus sirkulasi lalu lintas logistik.</p>
+                        </div>
+                        <div class="text-center relative" data-aos="fade-right" data-aos-delay="200">
+                            <div class="text-4xl font-serif font-bold text-[#800000]/10 mb-2">02</div>
+                            <h5 class="font-bold text-sm text-[#3E2723] uppercase tracking-wider mb-1">Strategic Proposal</h5>
+                            <p class="text-xs text-gray-500 max-w-xs mx-auto">Pengajuan opsi kemitraan bisnis rasional beserta rincian penawaran perangkat pendukung.</p>
+                        </div>
+                        <div class="text-center relative" data-aos="fade-right" data-aos-delay="300">
+                            <div class="text-4xl font-serif font-bold text-[#800000]/10 mb-2">03</div>
+                            <h5 class="font-bold text-sm text-[#3E2723] uppercase tracking-wider mb-1">Implementation</h5>
+                            <p class="text-xs text-gray-500 max-w-xs mx-auto">Instalasi instrumen hardware di gerbang masuk-keluar serta sinkronisasi ke server cloud.</p>
+                        </div>
+                        <div class="text-center relative" data-aos="fade-right" data-aos-delay="400">
+                            <div class="text-4xl font-serif font-bold text-[#800000]/10 mb-2">04</div>
+                            <h5 class="font-bold text-sm text-[#3E2723] uppercase tracking-wider mb-1">Live Operation</h5>
+                            <p class="text-xs text-gray-500 max-w-xs mx-auto">Pengaktifan sistem penuh yang dikawal oleh kesiapan tim teknis support darurat 24/7.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="portfolio" class="page-section py-24 px-6 bg-white">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-end mb-12 border-b border-gray-100 pb-6" data-aos="fade-up">
+                    <div>
+                        <span class="text-[#800000] font-bold uppercase tracking-wider text-xs block mb-1">Track Record</span>
+                        <h2 class="text-3xl md:text-4xl font-serif text-[#3E2723]">Jejak Langkah Operasional</h2>
+                    </div>
+                    <span class="text-5xl font-extrabold text-[#F5E6D3]/60 font-serif tracking-widest hidden md:inline">Portfolio</span>
+                </div>
+
+                <div id="portfolio-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 grid-limited">
+                    </div>
+
+                <div class="mt-12 text-center" data-aos="fade-up">
+                    <button id="loadMoreBtn" onclick="togglePortfolio()" class="border border-[#800000] text-[#800000] px-8 py-3 rounded-full font-bold uppercase text-[10px] tracking-widest hover:bg-[#800000] hover:text-white transition-all shadow-sm">
+                        Lihat Semua Portfolio
+                    </button>
+                </div>
+
+                <div class="mt-32 max-w-3xl mx-auto" data-aos="fade-up">
+                    <div class="text-center mb-12">
+                        <h2 class="text-2xl md:text-3xl font-serif text-[#3E2723]">Pertanyaan Umum</h2>
+                        <p class="text-xs text-gray-400 mt-1 uppercase tracking-wider">Informasi Teknis Layanan & Sistem</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                            <button onclick="toggleFaq(0)" class="w-full flex justify-between items-center p-5 text-left font-bold text-sm text-[#3E2723] hover:bg-gray-50 transition-colors">
+                                <span>Berapa lama estimasi durasi instalasi sistem Smart Gate?</span>
+                                <i class="fas fa-chevron-down text-xs text-[#800000] transition-transform duration-300" id="faq-icon-0"></i>
+                            </button>
+                            <div id="faq-ans-0" class="faq-content">
+                                <p class="p-5 pt-0 text-xs text-gray-500 leading-relaxed border-t border-gray-50 mt-2">Untuk instalasi standard konfigurasi 2 pintu masuk dan 2 pintu keluar, alokasi waktu efektif berkisar antara 7-14 hari kerja termasuk uji coba reliabilitas jaringan cloud dan pelatihan menyeluruh pengawas.</p>
+                            </div>
+                        </div>
+                        <div class="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                            <button onclick="toggleFaq(1)" class="w-full flex justify-between items-center p-5 text-left font-bold text-sm text-[#3E2723] hover:bg-gray-50 transition-colors">
+                                <span>Apakah infrastruktur RITS mendukung metode pembayaran non-tunai (Cashless)?</span>
+                                <i class="fas fa-chevron-down text-xs text-[#800000] transition-transform duration-300" id="faq-icon-1"></i>
+                            </button>
+                            <div id="faq-ans-1" class="faq-content">
+                                <p class="p-5 pt-0 text-xs text-gray-500 leading-relaxed border-t border-gray-50 mt-2">Ya, arsitektur core-system kami telah terintegrasi secara bawaan dengan multisector perbankan penyedia kartu uang elektronik (Flazz, Emoney, TapCash, Brizzi) serta antarmuka standardisasi QRIS.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="testimonials" class="page-section py-24 px-6 bg-[#FCFAEE]">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16" data-aos="fade-up">
+                    <h2 class="text-3xl font-serif text-[#3E2723] mb-2">Evaluasi & Apresiasi Mitra</h2>
+                    <div class="w-12 h-0.5 bg-[#800000] mx-auto"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-t-2 border-[#800000]" data-aos="zoom-in" data-aos-delay="100">
+                        <div class="text-[#D4AF37] text-xs mb-3"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                        <p class="text-xs italic text-gray-500 mb-4 leading-relaxed">"Sistem Manless dari RITS sangat membantu transparansi pendapatan di kawasan pergudangan kami. Laporannya real-time dan akurat."</p>
+                        <h5 class="font-bold text-xs text-[#3E2723]">— Bpk. Hendra, Property Manager</h5>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-t-2 border-[#1A1A1A]" data-aos="zoom-in" data-aos-delay="200">
+                        <div class="text-[#D4AF37] text-xs mb-3"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                        <p class="text-xs italic text-gray-500 mb-4 leading-relaxed">"Respon tim manajemen tanggap saat penyesuaian lapangan. Karakter penataan area medis luar biasa rapi."</p>
+                        <h5 class="font-bold text-xs text-[#3E2723]">— Ibu Maya, Operasional RS</h5>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-t-2 border-[#800000]" data-aos="zoom-in" data-aos-delay="300">
+                        <div class="text-[#D4AF37] text-xs mb-3"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                        <p class="text-xs italic text-gray-500 mb-4 leading-relaxed">"Skema profit sharing dinilai terbuka dan transparan tanpa ada variabel biaya tersembunyi. Sangat direkomendasikan."</p>
+                        <h5 class="font-bold text-xs text-[#3E2723]">— Bpk. Rudy, Pemilik Properti Lahan</h5>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="career" class="page-section py-24 px-6 bg-[#3E2723] text-[#F5E6D3]">
+            <div class="max-w-7xl mx-auto">
+                <div class="grid lg:grid-cols-2 gap-16 items-center">
+                    <div data-aos="fade-right">
+                        <h2 class="text-3xl md:text-4xl font-serif mb-4">Bergabung Bersama Kami</h2>
+                        <p class="text-xs opacity-70 mb-8 max-w-md leading-relaxed">
+                            Kami membuka gerbang karir bagi talenta berdedikasi tinggi untuk mengisi formasi pos operasional unit lapangan maupun struktural administratif kantor pusat.
+                        </p>
+                        <div class="space-y-3">
+                            <div class="bg-black/20 p-5 rounded-xl border border-white/5 flex justify-between items-center group hover:bg-[#800000] transition-all cursor-pointer" data-aos="fade-up" data-aos-delay="100">
+                                <div>
+                                    <h4 class="text-sm font-bold">Staff Operasional Lapangan</h4>
+                                    <p class="text-[10px] opacity-50 mt-0.5">Penempatan: Jabodetabek</p>
+                                </div>
+                                <i class="fas fa-chevron-right text-xs opacity-50 group-hover:translate-x-1 transition-transform"></i>
+                            </div>
+                            <div class="bg-black/20 p-5 rounded-xl border border-white/5 flex justify-between items-center group hover:bg-[#800000] transition-all cursor-pointer" data-aos="fade-up" data-aos-delay="200">
+                                <div>
+                                    <h4 class="text-sm font-bold">IT Specialist Support</h4>
+                                    <p class="text-[10px] opacity-50 mt-0.5">Penempatan: Jakarta Utara (Head Office)</p>
+                                </div>
+                                <i class="fas fa-chevron-right text-xs opacity-50 group-hover:translate-x-1 transition-transform"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-8 rounded-2xl text-black shadow-xl" data-aos="fade-left">
+                        <h3 class="text-lg font-bold mb-6 text-[#3E2723] uppercase tracking-wider italic">Submit Application Form</h3>
+                        <form id="careerForm" action="https://formsubmit.co/ajax/your-real-email@domain.com" method="POST" class="space-y-4">
+                            <input type="hidden" name="_subject" value="Lamaran Baru - PT RITS NUSA KENARI">
+                            <input type="hidden" name="_template" value="table">
+                            
+                            <div>
+                                <input type="text" name="name" placeholder="Nama Lengkap Sesuai KTP" required class="w-full text-xs bg-[#F5E6D3]/40 rounded-xl py-3.5 px-4 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-[#800000] text-black">
+                            </div>
+                            <div>
+                                <input type="email" name="email" placeholder="Alamat E-mail Aktif" required class="w-full text-xs bg-[#F5E6D3]/40 rounded-xl py-3.5 px-4 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-[#800000] text-black">
+                            </div>
+                            <div>
+                                <input type="tel" name="phone" placeholder="Nomor Handphone / WhatsApp" required class="w-full text-xs bg-[#F5E6D3]/40 rounded-xl py-3.5 px-4 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-[#800000] text-black">
+                            </div>
+                            <div>
+                                <select name="position" required class="w-full text-xs bg-[#F5E6D3]/40 rounded-xl py-3.5 px-4 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-[#800000] text-gray-500">
+                                    <option value="" disabled selected>Pilih Klasifikasi Posisi</option>
+                                    <option value="Staff Operasional">Staff Operasional</option>
+                                    <option value="IT Support">IT Support</option>
+                                    <option value="Administrasi">Administrasi</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 block ml-1">Dokumen CV Ringkas (Format PDF, Maks 5MB)</label>
+                                <input type="file" name="attachment" accept="application/pdf" required class="w-full text-xs bg-gray-50 rounded-xl py-2 px-3 border border-gray-200 file:mr-3 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-[#800000] file:text-white hover:file:bg-black file:transition-all text-gray-400">
+                            </div>
+                            <button type="submit" id="submitBtn" class="w-full bg-[#800000] text-white py-4 rounded-xl font-bold uppercase text-xs shadow-md hover:bg-[#5a0000] transition-all mt-2">
+                                Kirim Berkas Lamaran
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="page-section py-24 px-6 bg-white">
+            <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+                <div data-aos="fade-right">
+                    <h2 class="text-3xl md:text-4xl font-serif mb-6 text-[#3E2723]">Let's Connect For Partnership</h2>
+                    <div class="space-y-6">
+                        <div class="flex gap-4 items-start">
+                            <div class="w-10 h-10 bg-[#800000]/5 text-[#800000] rounded-xl flex items-center justify-center text-sm shrink-0"><i class="fas fa-map-marked-alt"></i></div>
+                            <div>
+                                <h5 class="font-bold text-sm uppercase text-[#3E2723] tracking-wider">Kantor Pusat Struktural</h5>
+                                <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">Jl. Siak No. 9 Komplek Ruko Gading Center, Kel. Kelapa Gading Barat, Kec. Kelapa Gading, Jakarta Utara.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 items-start">
+                            <div class="w-10 h-10 bg-[#1A1A1A]/5 text-[#1A1A1A] rounded-xl flex items-center justify-center text-sm shrink-0"><i class="fas fa-phone-alt"></i></div>
+                            <div>
+                                <h5 class="font-bold text-sm uppercase text-[#3E2723] tracking-wider">Korespondensi Kontak</h5>
+                                <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">Hotline Phone: +62 895 1036 0700<br>Official E-mail: info@ritsnusakenari.com</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="h-80 md:h-96 rounded-2xl overflow-hidden shadow-lg border border-gray-100" data-aos="fade-left">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.650239648939!2d106.891147!3d-6.177551!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNsKwMTAnMzkuMiJTIDEwNsKwNTMnMjguMSJF!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid" 
+                            width="100%" height="100%" style="border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-[#1A1A1A] text-white pt-20 pb-10 px-6 border-t border-white/5">
+        <div class="max-w-7xl mx-auto text-center">
+            <div class="flex items-center justify-center gap-3 mb-6">
+                <div class="w-10 h-10 bg-[#800000] rounded-xl flex items-center justify-center shadow-inner">
+                    <img src="foto/logo_rits2.JPG" alt="Mini RITS" class="w-8 h-8 object-contain rounded">
+                </div>
+                <h4 class="text-xl font-extrabold tracking-wider uppercase">PT RITS NUSA KENARI</h4>
+            </div>
+            
+            <div class="flex justify-center gap-4 mb-8">
+                <a href="#" class="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#800000] hover:border-transparent transition-all text-sm"><i class="fab fa-linkedin-in"></i></a>
+                <a href="#" class="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#800000] hover:border-transparent transition-all text-sm"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#800000] hover:border-transparent transition-all text-sm"><i class="fab fa-facebook-f"></i></a>
+            </div>
+            
+            <div class="border-t border-white/5 pt-8 text-[10px] text-gray-500 font-medium tracking-widest">
+                <div>© 2026 PT RITS NUSA KENARI. HIGH LEVEL FACILITIES & PARKING ARCHITECTURE MANAGEMENT.</div>
+                <div class="mt-2 flex justify-center gap-4 opacity-40 text-[9px]">
+                    <a href="#" class="hover:text-[#800000] transition-colors">Privacy Charter</a>
+                    <a href="#" class="hover:text-[#800000] transition-colors">Terms of Operations</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <button id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+        class="fixed bottom-24 right-6 z-[60] w-12 h-12 bg-[#1A1A1A] text-white rounded-full flex items-center justify-center text-sm shadow-xl opacity-0 pointer-events-none transition-all duration-300 hover:bg-[#800000]">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <div id="modalOverlay" class="fixed inset-0 bg-black/85 hidden z-[100] flex items-center justify-center p-6 transition-all duration-300" onclick="closeModal()">
+        <div class="bg-[#FCFAEE] max-w-xl w-full rounded-2xl p-8 relative shadow-2xl border-t-8 border-[#800000] transform translate-y-0 transition-transform" onclick="event.stopPropagation()">
+            <button onclick="closeModal()" class="absolute top-4 right-6 text-3xl text-gray-400 hover:text-[#800000] transition-colors focus:outline-none">×</button>
+            <div id="modalIcon" class="w-12 h-12 bg-[#1A1A1A] text-[#D4AF37] rounded-xl flex items-center justify-center text-lg mb-6 shadow-md">
+                <i class="fas fa-handshake"></i>
+            </div>
+            <h2 id="modalTitle" class="text-xl md:text-2xl font-serif text-[#3E2723] mb-4"></h2>
+            <div class="bg-white p-5 rounded-xl border-l-4 border-[#800000] shadow-inner text-xs md:text-sm text-gray-600 leading-relaxed italic">
+                <p id="modalContent"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="imageModal" class="fixed inset-0 bg-black/95 hidden z-[110] flex items-center justify-center p-4 cursor-zoom-out" onclick="closeImageModal()">
+        <button onclick="event.stopPropagation(); closeImageModal();" class="absolute top-6 right-8 text-4xl text-white hover:text-[#800000] focus:outline-none transition-colors z-[120] p-4 cursor-pointer" aria-label="Close Image">
+            <i class="fas fa-times"></i>
+        </button>
+        <img id="fullImage" src="" class="max-w-full max-h-full object-contain rounded shadow-2xl transition-transform duration-300 transform scale-95" onclick="event.stopPropagation()">
+    </div>
+
+    <a href="https://wa.me/6289510360700" aria-label="WhatsApp Contact" class="fixed bottom-6 right-6 z-[60] w-12 h-12 bg-[#25d366] rounded-full flex items-center justify-center text-white text-2xl shadow-xl hover:scale-105 transition-transform">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <script>
+        // Inisialisasi Sistem Animasi dengan Easing Custom Bergeser Lembut
+        AOS.init({
+            once: true,
+            duration: 900,
+            easing: 'ease-out-quint'
+        });
+
+        let portfolioData = [];
+        const initialPortfolio = [
+            { title: "KAWASAN BIMOLI", loc: "Jakarta Utara", img: "foto/bimoli.jpeg", border: "#800000" },
+            { title: "RS MARY CILEUNGSI", loc: "Bogor, Jawa Barat", img: "foto/rs_mery.jpeg", border: "#1A1A1A" },
+            { title: "HOLLYWOOD JUNCTION", loc: "Cikarang", img: "foto/jababeka.jpeg", border: "#800000" },
+            { title: "GADING CENTER", loc: "Jakarta Utara", img: "https://images.unsplash.com/photo-1573164713988-8665fc963095?q=80&w=800", border: "#1A1A1A" },
+            { title: "SIAK PORT AREA", loc: "Tanjung Priok", img: "https://images.unsplash.com/photo-1524522173746-f628baad3644?q=80&w=800", border: "#800000" },
+            { title: "SIAK LOGISTIC", loc: "Tanjung Priok", img: "https://images.unsplash.com/photo-1590674899484-13da0d1b58f5?q=80&w=800", border: "#1A1A1A" },
+            { title: "OFFICE AREA RITS", loc: "Head Office", img: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800", border: "#800000" }
+        ];
+
+        // --- FIREBASE CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDLHKmV8hgZz6JW_HrHU9ECMhdez-okcJM",
+            authDomain: "rits-nusa-kenari.firebaseapp.com",
+            projectId: "rits-nusa-kenari",
+            storageBucket: "rits-nusa-kenari.firebasestorage.app",
+            messagingSenderId: "202926194116",
+            appId: "1:202926194116:web:0e177ccaac302082e5f891",
+            measurementId: "G-Y5PRFCV9EG"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function syncFromCloud() {
+            try {
+                db.collection("portfolios").orderBy("createdAt", "desc").onSnapshot(
+                    (snapshot) => {
+                        const cloudData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        portfolioData = [...cloudData, ...initialPortfolio];
+                        renderPortfolio();
+                    },
+                    (error) => {
+                        console.error("Sync Failure:", error);
+                    }
+                );
+            } catch (err) { console.error(err); }
+        }
+
+        // Render Grid dengan Animasi Bergeser Saat Masuk Layar (Scroll) dan Hover
+        function renderPortfolio() {
+            const grid = document.getElementById('portfolio-grid');
+            if (!grid) return;
+
+            grid.innerHTML = portfolioData.map((item, index) => {
+                const animType = index % 3 === 0 ? 'fade-right' : (index % 3 === 1 ? 'fade-left' : 'fade-up');
+                return `
+                    <div class="portfolio-item group" data-aos="${animType}" data-aos-delay="${(index % 4) * 50}" data-aos-duration="1000">
+                        <div onclick="openImageModal('${item.img}')" class="zoom-container aspect-square shadow-sm cursor-pointer overflow-hidden border-b-4" style="border-color: ${item.border || '#800000'}">
+                            <img src="${item.img}" class="grayscale group-hover:grayscale-0" loading="lazy" alt="${item.title}">
+                            <div class="photo-text">
+                                <h4 class="text-xs md:text-sm font-bold text-white italic tracking-wide leading-tight">${item.title}</h4>
+                                <p class="text-[9px] text-gray-400 mt-0.5">${item.loc}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        const details = {
+            management: { title: "Management Fee", desc: "Kami mengelola penuh operasional secara end-to-end dengan pengenaan imbal jasa tetap yang disepakati di awal kontrak. Seluruh transparansi alur audit dan pelaporan disajikan secara berkala tanpa ada biaya tersembunyi." },
+            profit: { title: "Profit Sharing", desc: "Mekanisme pembagian dividen hasil berdasarkan Laba Bersih Operasional (Net Profit) setelah dikurangi beban pajak retribusi daerah dan biaya operasional langsung lapangan secara akurat." },
+            revenue: { title: "Revenue Sharing", desc: "Skema pembagian langsung dari pendapatan kotor (Gross Revenue) yang didapat pasca pemotongan pajak daerah, di mana variabel resiko operasional harian sepenuhnya ditanggung oleh pihak manajemen RITS." },
+            guaranteed: { title: "Guaranteed Income", desc: "Sistem sewa lahan komersial jangka panjang terikat dengan nilai valuasi tetap setiap bulan. Memberikan kepastian pendapatan pasif mutlak bagi pemilik properti tanpa terpengaruh kondisi volume traffic harian." },
+            technical: { title: "Technical Assistance", desc: "Konsultasi arsitektur digital dan penyediaan modul sistem komputasi parkir. Penempatan sumber daya manusia di lapangan dikelola mandiri oleh pemilik properti dengan standardisasi dari tim ahli kami." },
+            combination: { title: "Combination Fee", desc: "Skema fleksibel hibrida yang mengolaborasikan poin-poin terbaik dari beberapa skema kerjasama (misal: Minimum Guaranteed + Profit Sharing) untuk mengamankan proteksi keuntungan kedua belah pihak." }
+        };
+
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('translate-x-full');
+        }
+
+        function openModal(type) {
+            document.getElementById('modalTitle').innerText = details[type].title;
+            document.getElementById('modalContent').innerText = details[type].desc;
+            document.getElementById('modalOverlay').classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('modalOverlay').classList.add('hidden'); }
+
+        function togglePortfolio() {
+            const grid = document.getElementById('portfolio-grid');
+            const btn = document.getElementById('loadMoreBtn');
+            grid.classList.toggle('grid-limited');
+            btn.innerText = grid.classList.contains('grid-limited') ? 'Lihat Semua Portfolio' : 'Sembunyikan Sebagian';
+        }
+
+        function openImageModal(src) {
+            const img = document.getElementById('fullImage');
+            img.src = src;
+            document.getElementById('imageModal').classList.remove('hidden');
+            setTimeout(() => img.classList.remove('scale-95'), 50);
+        }
+
+        function closeImageModal() {
+            const img = document.getElementById('fullImage');
+            img.classList.add('scale-95');
+            setTimeout(() => document.getElementById('imageModal').classList.add('hidden'), 200);
+        }
+
+        function toggleFaq(idx) {
+            const content = document.getElementById(`faq-ans-${idx}`);
+            const icon = document.getElementById(`faq-icon-${idx}`);
+            const isOpen = content.style.maxHeight !== "0px" && content.style.maxHeight !== "";
+            content.style.maxHeight = isOpen ? "0px" : content.scrollHeight + "px";
+            icon.style.transform = isOpen ? "rotate(0deg)" : "rotate(180deg)";
+        }
+
+        // Animated Counter
+        const countObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const target = parseInt(entry.target.getAttribute('data-target'));
+                    let current = 0;
+                    const step = target / 40;
+                    const timer = setInterval(() => {
+                        current += step;
+                        entry.target.innerText = Math.floor(current) + "+";
+                        if (current >= target) {
+                            entry.target.innerText = target + "+";
+                            clearInterval(timer);
+                        }
+                    }, 25);
+                    countObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        // Scroll Top visibility Control
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('backToTop');
+            if (window.scrollY > 400) {
+                btn.classList.remove('opacity-0', 'pointer-events-none');
+                btn.classList.add('opacity-100');
+            } else {
+                btn.classList.remove('opacity-100');
+                btn.classList.add('opacity-0', 'pointer-events-none');
+            }
+        });
+
+        document.addEventListener('keydown', (e) => { if(e.key === "Escape") { closeModal(); closeImageModal(); } });
+
+        function showPage(pageId, updateHash = true) {
+            document.querySelectorAll('.page-section').forEach(sec => {
+                sec.classList.remove('active');
+                sec.style.display = 'none';
+            });
+
+            document.querySelectorAll('.nav-link').forEach(link => {
+                const linkTarget = link.getAttribute('onclick').match(/'([^']+)'/)[1];
+                link.classList.toggle('active', linkTarget === pageId);
+            });
+
+            const target = document.getElementById(pageId);
+            if (target) {
+                target.style.display = 'block';
+                requestAnimationFrame(() => {
+                    target.classList.add('active');
+                });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                if(updateHash) history.pushState(null, null, `#${pageId}`);
+            }
+        }
+
+        window.onpopstate = () => {
+            const page = location.hash.replace('#', '') || 'home';
+            showPage(page, false);
+        };
+
+        window.onload = () => {
+            const initialPage = location.hash.replace('#', '') || 'home';
+            syncFromCloud();
+            showPage(initialPage, false);
+            document.querySelectorAll('.stat-number').forEach(el => countObserver.observe(el));
+        };
+    </script>
+</body>
+</html>
